@@ -171,7 +171,7 @@ int ProcessTranslate(int inputPipe[], int outputPipe[])
 	switch(pid_output)
   	{
     case -1:        /* error */
-    	fatal ("Bad process translate fork call");
+    	fatal ("ProcessTranslate: Bad process translate fork call");
     	break;
     case 0:        /* It's the child */
     	display("ProcessTranslate: childerino");
@@ -190,19 +190,20 @@ int ProcessTranslate(int inputPipe[], int outputPipe[])
 					sleep(1);
 			    	break;
 			    default:
+			    	/*Display the Raw Message initially*/
 			    	printf("Raw message: %s\n", msg);
-			    	/*handle the raw message hereino. */
 			    	
 					TranslateRawInput(msg, formatted);
 					printf("Formatted:");
 					display(formatted);
+					printf("hit\n");
 					/*
 					write (outputPipe[1], message, BUFFERSIZE);
 					*/
 						
 					/* Last part to section */
 					if (strstr(msg, DEFAULT_EXIT) != 0) {
-						display("Ending ProcessTranslate");
+						display("ProcessTranslate: Ending ProcessTranslate");
 						quit = 1;
 				    }
 			    } /* End of switch statement */
@@ -224,13 +225,14 @@ void TranslateRawInput(const char* src, char* dest)
 {
 	int i, j = 0;
 
-	for (i = 0; src[i] != 0; i++){
+	for (i = 0; src[i] != '\0'; i++){
 		if(src[i] == 'a'){
 			dest[j++] = 'z';
 		} else {
 			dest[j++] = src[i];
 		}
 	}
+	dest[j] = '\0';
 
 }
 
