@@ -157,6 +157,7 @@ int ProcessTranslate(int inputPipe[], int outputPipe[])
 	short quit = 0;
 	int nread;
 	char msg[BUFFERSIZE];
+	char formatted[BUFFERSIZE];
 	/*pid_output = fork();*/
 
 	display("ProcessTranslate: Begin.");
@@ -191,11 +192,19 @@ int ProcessTranslate(int inputPipe[], int outputPipe[])
 			    default:
 			    	printf("Raw message: %s\n", msg);
 			    	/*handle the raw message hereino. */
-			    	if (strstr(msg, DEFAULT_EXIT) != 0) {
+			    	
+					TranslateRawInput(msg, formatted);
+					printf("Formatted:");
+					display(formatted);
+					/*
+					write (outputPipe[1], message, BUFFERSIZE);
+					*/
+						
+					/* Last part to section */
+					if (strstr(msg, DEFAULT_EXIT) != 0) {
 						display("Ending ProcessTranslate");
 						quit = 1;
 				    }
-						
 			    } /* End of switch statement */
 
 				if(quit){
@@ -211,9 +220,18 @@ int ProcessTranslate(int inputPipe[], int outputPipe[])
 }
 
 /*==== Translates the raw input and formats it. ====*/
-int TranslateRawInput(int outputPipe[], const char* msg)
+void TranslateRawInput(const char* src, char* dest)
 {
-	return inputPipe[0] == outputPipe[0];
+	int i, j = 0;
+
+	for (i = 0; src[i] != 0; i++){
+		if(src[i] == 'a'){
+			dest[j++] = 'z';
+		} else {
+			dest[j++] = src[i];
+		}
+	}
+
 }
 
 
@@ -225,7 +243,7 @@ void fatal(char* errorMsg)
 }
 
 /*==== Prints the message to the standard output. ====*/
-void display(char* msg)
+void display(const char* msg)
 {
 	printf("%s\n", msg);
 }

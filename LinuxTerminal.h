@@ -202,22 +202,21 @@ DESIGNER:		Tyler Trepanier-Bracken
 
 PROGRAMMER(S):	Tyler Trepanier-Bracken
 
-INTERFACE:		int TranslateRawInput(int inputPipe[], 
-										int outputPipe[])
+INTERFACE:		char* TranslateRawInput(char* src,
+										char* dest)
 
-PARAMETERS:		int outputPipe[]
-					Pipe used to communicate with the Output Process 
-				const char* rawMsg
+PARAMETERS:		const char* src
 					Raw message to be reformatted.
+				char* dest
+					Formatted message.
 
-RETURNS:		char*
-					Formatted message to be transferred to the Output.
+RETURNS:		void
 
 NOTES:
 Utility function used by the ProcessTranslate that will convert all a's into z's. 
 ===============================================================================
 */
-int TranslateRawInput(int inputPipe[], int outputPipe[]);
+void TranslateRawInput(const char* src, char* dest);
 
 /*
 ===============================================================================
@@ -249,7 +248,7 @@ void fatal(char* errorMsg);
 
 /*
 ===============================================================================
-FUNCTION: 		Fatal 
+FUNCTION: 		Display 
 
 DATE:			January 10, 2016
 
@@ -261,7 +260,7 @@ PROGRAMMER(S):	Tyler Trepanier-Bracken
 
 INTERFACE:		void display(char* errorMsg)
 
-PARAMETERS:		char *msg: 
+PARAMETERS:		const char *msg: 
 					Message to be displayed to the standard output.
 
 RETURNS:		void
@@ -270,4 +269,4 @@ NOTES:
 Displays an message to the standard output and appends with a newline.
 ===============================================================================
 */
-void display(char* msg);
+void display(const char* msg);
