@@ -22,3 +22,4 @@ Standard Notes go here.
 */
 #define BUFFERSIZE 512
 const char* DEFAULT_EXIT = "T";
+const char* IMMEDIATE_EXIT = "^k";

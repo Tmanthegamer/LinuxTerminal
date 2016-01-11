@@ -105,10 +105,12 @@ int ProcessInput(int translatePipe[])
 		if(strstr(message, DEFAULT_EXIT) != 0){
 			wait(NULL);
 			break;
+		} else if(strstr(message, IMMEDIATE_EXIT) != 0 ) {
+			display("ctrl-k hit");
 		}
 	}
 
-	display("End of ProcessInput");
+	display("Process Input: Ending ProcessInput");
 
 	return 0;
 }
@@ -116,33 +118,36 @@ int ProcessInput(int translatePipe[])
 /*==== Displays message to standard output ====*/
 int ProcessOutput(int outputPipe[])
 {
-	int nread;
+	short nread, quit = 0;
 	char buf[BUFFERSIZE];
 
 	close(outputPipe[1]); /* Close the pipe for writing, don't need it. */
 
-	/*for (;;)-- DISABLED FOR NOW, TESTING REQUIRED --*/
-	if(0)
+	for (;;)
 	{
 	    nread = read(outputPipe[0], buf, BUFFERSIZE);
 	    switch (nread)
 	    {
 	    case -1:
 	    case 0:
-			printf ("(pipe empty)\n");
 			sleep(1);
 	    	break;
 	    default:
-	    	if (0) {
-				printf ("Message received\n");
-			  	exit(0);
-
-		    } else {
-		    	printf("Message received.\n");
-		    	/*printf ("MSG = %s\n", buf);*/
-		    }
-				
+	    	if(strstr(buf, IMMEDIATE_EXIT) != 0){
+	    		quit = 2;
+	    	} else if(strstr(buf, DEFAULT_EXIT) != 0){
+	    		quit = 1;
+	    	} 
+			printf ("ProcessOutput: Message is:%s", buf);
 	    } /* End of switch statement */
+
+		if(quit == 1){
+			display("ProcessOutput: Normal Termination");
+			break;
+		} else if (quit == 2){
+			display("ctrl-k was found");
+			break;
+		}
 
 	} /* End of infinite for loop */
 
@@ -153,20 +158,21 @@ int ProcessOutput(int outputPipe[])
   ==== the Output. 														====*/
 int ProcessTranslate(int inputPipe[], int outputPipe[])
 {
-	pid_t pid_output = 1;
+	pid_t pid_output;
 	short quit = 0;
 	int nread;
 	char msg[BUFFERSIZE];
 	char formatted[BUFFERSIZE];
-	/*pid_output = fork();*/
+	
+
+	pid_output = fork();
 
 	display("ProcessTranslate: Begin.");
 
 	/* Disable writing to the input pipe, only reading required. */
 	close(inputPipe[1]); 	
 	
-	/* Disable reading from the output pipe, only writing required. */
-	/*close(outputPipe[0]);*/	
+	
 
 	switch(pid_output)
   	{
@@ -174,11 +180,14 @@ int ProcessTranslate(int inputPipe[], int outputPipe[])
     	fatal ("ProcessTranslate: Bad process translate fork call");
     	break;
     case 0:        /* It's the child */
-    	display("ProcessTranslate: childerino");
-    	/*ProcessOutput (outputPipe);*/
+    	display("ProcessTranslate: Child, beginning ProcessOutput");
+    	ProcessOutput (outputPipe);
     	break;
-    default:       /* parent */
+    default:       /* Perform the translation function. */
     	{
+    		/* Disable reading from the output pipe, only writing required. */
+			close(outputPipe[0]);	
+    		
     		display("ProcessTranslate: Infinite Read loop started.");
     		for(;;)
     		{
@@ -187,23 +196,23 @@ int ProcessTranslate(int inputPipe[], int outputPipe[])
 			    {
 			    case -1:
 			    case 0:
-					sleep(1);
 			    	break;
 			    default:
 			    	/*Display the Raw Message initially*/
-			    	printf("Raw message: %s\n", msg);
+			    	write (outputPipe[1], msg, BUFFERSIZE);
 			    	
-					TranslateRawInput(msg, formatted);
+			    	TranslateRawInput(msg, formatted);
+			    	write (outputPipe[1], formatted, BUFFERSIZE);
+			    	
+			    	/* printf("Raw message: %s\n", msg);
 					printf("Formatted:");
-					display(formatted);
-					printf("hit\n");
-					/*
-					write (outputPipe[1], message, BUFFERSIZE);
-					*/
+					display(formatted);*/
+					
 						
 					/* Last part to section */
 					if (strstr(msg, DEFAULT_EXIT) != 0) {
 						display("ProcessTranslate: Ending ProcessTranslate");
+						wait(NULL);
 						quit = 1;
 				    }
 			    } /* End of switch statement */
@@ -215,7 +224,6 @@ int ProcessTranslate(int inputPipe[], int outputPipe[])
     	}
     	break;
   	} /* End of switch statement */
-
   	return 0;
 
 }
@@ -249,3 +257,4 @@ void display(const char* msg)
 {
 	printf("%s\n", msg);
 }
+
