@@ -40,11 +40,15 @@ What you will have access to via keyboard input:
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <signal.h>
 #include <string.h>
 #include <fcntl.h>
 #include <sys/wait.h>
 #include "LinuxTerminal.h"
 #include "Constants.h"
+
+/* ==== Global Variables ====*/
+pid_t pid_translate, pid_output; // Used for immediate execution of processes.
 
 
 /*==== Main program entry point ====*/
@@ -52,8 +56,6 @@ int main(void)
 {
 	int translatePipe[2];
 	int outputPipe[2];
-	
-	pid_t pid_translate;
 
 	/* Open translate pipe communication. */
 	if(pipe(translatePipe) < 0 || pipe(outputPipe) < 0){
@@ -95,20 +97,43 @@ int ProcessInput(int translatePipe[])
 {
 	char confirm[BUFFERSIZE]= "ProcessInput: Sent Confirmed";
 	char message[BUFFERSIZE];
+	
+	struct sigaction sa;
+	struct sigaction oldint;
+
+	sigemptyset (&sa.sa_mask);
+	sa.sa_flags = 0;
+
+	sigaction (SIGINT, &sa, &oldint);
+	sigaction (SIGTSTP, &sa, NULL);
+
 	close(translatePipe[0]); /* Close the pipe for reading, don't need it. */
 	
 	while ((fgets(message, BUFFERSIZE, stdin)) != NULL) {
 		display(confirm);
+		if(FindCommand(message, IMMEDIATE_EXIT)){
+			display("Kill Found!");
+			kill(pid_translate, SIGKILL);
+			kill(pid_output, SIGKILL);
+			break;
+		} 
+
 		write (translatePipe[1], message, BUFFERSIZE);
+		if(strstr(message, DEFAULT_EXIT)) {
+			display("ProcessInput: Normal Termination.");
+			wait(NULL);
+			break;
+		}
+
+		
 		
 		/* If the termination character has been detected. */
 		if(strstr(message, DEFAULT_EXIT) != 0){
 			wait(NULL);
 			break;
-		} else if(strstr(message, IMMEDIATE_EXIT) != 0 ) {
-			display("ctrl-k hit");
 		}
 	}
+	sigaction (SIGINT, &oldint, NULL);
 
 	display("Process Input: Ending ProcessInput");
 
@@ -133,19 +158,15 @@ int ProcessOutput(int outputPipe[])
 			sleep(1);
 	    	break;
 	    default:
-	    	if(strstr(buf, IMMEDIATE_EXIT) != 0){
-	    		quit = 2;
-	    	} else if(strstr(buf, DEFAULT_EXIT) != 0){
+	    	if(strstr(buf, DEFAULT_EXIT) != 0){
 	    		quit = 1;
 	    	} 
 			printf ("ProcessOutput: Message is:%s", buf);
 	    } /* End of switch statement */
 
-		if(quit == 1){
+		//Check for normal termination request.
+		if(quit){
 			display("ProcessOutput: Normal Termination");
-			break;
-		} else if (quit == 2){
-			display("ctrl-k was found");
 			break;
 		}
 
@@ -158,7 +179,6 @@ int ProcessOutput(int outputPipe[])
   ==== the Output. 														====*/
 int ProcessTranslate(int inputPipe[], int outputPipe[])
 {
-	pid_t pid_output;
 	short quit = 0;
 	int nread;
 	char msg[BUFFERSIZE];
@@ -217,7 +237,9 @@ int ProcessTranslate(int inputPipe[], int outputPipe[])
 				    }
 			    } /* End of switch statement */
 
+				//Check for normal termination request.
 				if(quit){
+					display("ProcessTranslate: Normal Termination");
 					break;
 				}
     		}/* End of for-loop */
@@ -246,7 +268,7 @@ void TranslateRawInput(const char* src, char* dest)
 
 
 /*==== Displays an error message and terminates the program immediately. ====*/
-void fatal(char* errorMsg)
+void fatal(const char* errorMsg)
 {
 	perror(errorMsg);
 	exit(1);
@@ -258,3 +280,29 @@ void display(const char* msg)
 	printf("%s\n", msg);
 }
 
+/* Simple signal handler */
+void sig_handler(int sig)
+{
+	if (sig == SIGKILL){
+		printf ("got SIGINT\n");
+	}
+	else if(sig == SIGTERM){
+		printf("not a signal");
+	} else if(sig == SIGINT) {
+		printf("naw");
+	} else {
+		printf("poop");
+	}
+}
+
+/* Search for ctrl-k */
+int FindCommand(const char* haystack, const int needle)
+{
+	int i;
+	for(i = 0; i < BUFFERSIZE; i++){
+		if(haystack[i] == needle){
+			return 1;
+		}
+	}
+	return 0;
+}

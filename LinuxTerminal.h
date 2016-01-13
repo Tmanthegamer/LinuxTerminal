@@ -244,7 +244,7 @@ NOTES:
 Displays an error message to the standard output and proceeds to terminate the program and all the processes.
 ===============================================================================
 */
-void fatal(char* errorMsg);
+void fatal(const char* errorMsg);
 
 /*
 ===============================================================================
@@ -270,3 +270,58 @@ Displays an message to the standard output and appends with a newline.
 ===============================================================================
 */
 void display(const char* msg);
+
+/*
+===============================================================================
+FUNCTION: 		sig_handler 
+
+DATE:			January 12, 2016
+
+REVISIONS:		(Date and Description)
+
+DESIGNER:		Tyler Trepanier-Bracken
+
+PROGRAMMER(S):	Tyler Trepanier-Bracken
+
+INTERFACE:		void sig_handler (int sig)
+
+PARAMETERS:		int sig: 
+					Signal that will be caught.
+
+RETURNS:		void
+
+NOTES:
+This handles all signal input.
+===============================================================================
+*/
+void sig_handler (int sig);
+
+/*
+===============================================================================
+FUNCTION: 		FindCharacter 
+
+DATE:			January 13, 2016
+
+REVISIONS:		(Date and Description)
+
+DESIGNER:		Tyler Trepanier-Bracken
+
+PROGRAMMER(S):	Tyler Trepanier-Bracken
+
+INTERFACE:		int FindCharacter(char* haystack, 
+								  int needle)
+
+PARAMETERS:		char* haystack
+					The character array that is searched.
+				char needle
+					Character that is attempted to be found in the haystack.
+
+RETURNS:		-returns 0 if the no command was not found.
+				-returns 1 if the terminate command was found.
+				-returns 2 if the kill command was found.
+
+NOTES:
+Searches a char array for the kill command.
+===============================================================================
+*/
+int FindCommand(const char* haystack, const int needle);
