@@ -308,20 +308,18 @@ DESIGNER:		Tyler Trepanier-Bracken
 
 PROGRAMMER(S):	Tyler Trepanier-Bracken
 
-INTERFACE:		int FindCharacter(char* haystack, 
-								  int needle)
+INTERFACE:		int FindCharacter(char* haystack)
 
 PARAMETERS:		char* haystack
 					The character array that is searched.
-				char needle
-					Character that is attempted to be found in the haystack.
 
-RETURNS:		-returns 0 if the no command was not found.
-				-returns 1 if the terminate command was found.
-				-returns 2 if the kill command was found.
+RETURNS:		-returns -1 if the no command was not found.
+				-returns the index of the kill command.
 
 NOTES:
 Searches a char array for the kill command.
 ===============================================================================
 */
-int FindCommand(const char* haystack, const int needle);
+int FindCommand(const char* haystack);
+
+void appendMessage(const char* first, const char* second, char* dest);
