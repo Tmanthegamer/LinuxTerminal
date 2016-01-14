@@ -171,8 +171,8 @@ int ProcessTranslate(int inputPipe[], int outputPipe[])
 	char rawMessage[BUFFERSIZE] = {'\0'};
 	char formattedMessage[BUFFERSIZE] = {'\0'};
 	
-	char* raw = "Raw: ";
-	char* format = "Formatted: ";
+	char* raw 		= "Raw   : ";
+	char* format 	= "Format: ";
 
 	pid_output = fork();
 
@@ -209,7 +209,7 @@ int ProcessTranslate(int inputPipe[], int outputPipe[])
 			    	write (outputPipe[1], rawMessage, BUFFERSIZE);
 
 			    	TranslateRawInput(msg, formatted);
-			    	appendMessage(format, msg, formattedMessage);
+			    	appendMessage(format, formatted, formattedMessage);
 
 			    	write (outputPipe[1], formattedMessage, BUFFERSIZE);	
 			    	/*Display the Raw Message initially*/
@@ -241,11 +241,18 @@ void TranslateRawInput(const char* src, char* dest)
 	for (i = 0; src[i] != '\0'; i++){
 		if(src[i] == 'a'){
 			dest[j++] = 'z';
+		} else if(src[i] == 'X'){
+			dest[j++] = '\b';
+		} else if(src[i] == 'K'){
+			while(j > -1){
+				dest[j--] = '\0';
+			}
+			j = 0;
 		} else {
 			dest[j++] = src[i];
 		}
 	}
-	dest[j] = '\0';
+	dest[i] = '\0';
 
 }
 
@@ -288,7 +295,7 @@ void appendMessage(const char* first, const char* second, char* dest)
 	for(i = 0; first[i] != '\0'; i++){
 		
 		/* Break if the buffersize has been reached */
-		if(i == BUFFERSIZE)
+		if(i >= BUFFERSIZE-1)
 			break;
 		
 		dest[i] = first[i];
@@ -297,10 +304,13 @@ void appendMessage(const char* first, const char* second, char* dest)
 	for(j = 0; second[j] != '\0'; j++){
 		
 		/* Break if the buffersize has been reached */
-		if(i == BUFFERSIZE)
+		if(i >= BUFFERSIZE-1)
 			break;
 
 		/* append the second to the destination. */
 		dest[i++] = second[j];
 	}
+	/* The final character will always be null terminated. */
+	dest[i] = '\0';
 }
+

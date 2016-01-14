@@ -322,4 +322,35 @@ Searches a char array for the kill command.
 */
 int FindCommand(const char* haystack);
 
+
+/*
+===============================================================================
+FUNCTION: 		AppendMessage 
+
+DATE:			January 13, 2016
+
+REVISIONS:		(Date and Description)
+
+DESIGNER:		Tyler Trepanier-Bracken
+
+PROGRAMMER(S):	Tyler Trepanier-Bracken
+
+INTERFACE:		void appendMessage(const char* first, 
+								   const char* second, 
+								   char* dest)
+
+PARAMETERS:		const char* first
+					First portion of the message to be put in the destination 
+			   	const char* second
+			   		Second portion of the message to be put in the destination
+			   	char* dest
+			   		Destination for the combined message.
+
+RETURNS:		void
+
+NOTES:
+Takes two char arrays and combines them into the destinated array up to the
+limit of the BUFFERSIZE.
+===============================================================================
+*/
 void appendMessage(const char* first, const char* second, char* dest);

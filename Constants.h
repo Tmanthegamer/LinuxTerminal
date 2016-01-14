@@ -22,7 +22,6 @@ Standard Notes go here.
 */
 #define BUFFERSIZE 2048
 #define IMMEDIATE_EXIT 0x0B
-#define SIGNAL_TERMINATE 0x03
 /* ==== Global Variables ====*/
 pid_t pid_translate, pid_output; // Used for immediate execution of processes.
 int quit = 0;
