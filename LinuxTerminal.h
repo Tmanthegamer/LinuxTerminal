@@ -47,7 +47,14 @@ processes:
 TERMINAL FUNCTIONALITY AND REPLACE IT WITH ITS OWN VERSION. MEANING THAT YOUR STANDARD CTRL-C OR CTRL-D WILL NOT WORK.
 ===============================================================================
 */
-
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <signal.h>
+#include <string.h>
+#include <fcntl.h>
+#include <sys/wait.h>
+#include "Constants.h"
 
 /*
 ===============================================================================

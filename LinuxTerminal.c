@@ -37,15 +37,7 @@ What you will have access to via keyboard input:
 	-line-kill which erases an entire line (pressing "K" [i.e. "shift-K"] )
 ===============================================================================
 */
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <signal.h>
-#include <string.h>
-#include <fcntl.h>
-#include <sys/wait.h>
 #include "LinuxTerminal.h"
-#include "Constants.h"
 
 /*==== Main program entry point ====*/
 int main(void)
@@ -55,6 +47,8 @@ int main(void)
 
 	int translatePipe[2];
 	int outputPipe[2];
+
+	system ("/bin/stty raw");
 
 	/* Open translate pipe communication. */
 	if(pipe(translatePipe) < 0 || pipe(outputPipe) < 0){
@@ -101,9 +95,58 @@ int ProcessInput(int translatePipe[])
 {
 	/*char confirm[BUFFERSIZE]= "ProcessInput: Sent Confirmed";*/
 	char message[BUFFERSIZE]={'\0'};
+	char c;
+	int i = 0;
 
 	close(translatePipe[0]); /* Close the pipe for reading, don't need it. */
 	
+	while(!quit){
+		c = getchar();
+		printf("c:%c\n", c);
+		switch(c)
+		{
+		/* Null character and newline restarts the while loop. */
+		case '\0':
+		case '\n':
+			continue;
+
+		/* 
+		Acts like the enter key inserting a newline and null terminating
+		the string.
+		*/
+		case 'E':
+			message[i++] = c;
+			message[i++] = '\n';
+			message[i++] = '\0';
+			write (translatePipe[1], message, BUFFERSIZE);
+			
+			i = 0;
+			message[i] = '\0';
+			break;
+		case 'T':
+			message[i++] = c;
+			message[i++] = '\n';
+			message[i++] = '\0';
+			
+			/* Sacrifices the children first before Process Input itself. */
+			wait(NULL);
+			quit = 1;
+			break;
+
+		case IMMEDIATE_EXIT:
+			quit = 1;
+			system ("stty -raw -igncr echo");
+			kill(0, SIGKILL);
+			break;
+
+		default:
+			message[i++] = c;
+			break;	
+		}
+	}
+	system ("stty -raw -igncr echo");
+
+	#if 0
 	while ((fgets(message, BUFFERSIZE, stdin)) != NULL || !quit) {
 		if(FindCommand(message)>= 0){
 			kill(0, SIGKILL);
@@ -119,6 +162,7 @@ int ProcessInput(int translatePipe[])
 		}
 		
 	}
+	#endif
 
 	/*display("Process Input: Ending ProcessInput");*/
 
@@ -133,7 +177,7 @@ int ProcessOutput(int outputPipe[])
 
 	close(outputPipe[1]); /* Close the pipe for writing, don't need it. */
 
-	for (;;)
+	while(!quit)
 	{
 	    nread = read(outputPipe[0], buf, BUFFERSIZE);
 	    switch (nread)
@@ -143,17 +187,13 @@ int ProcessOutput(int outputPipe[])
 			
 	    	break;
 	    default:
-	    	if(strstr(buf, DEFAULT_EXIT) != 0){
+	    	printf ("%s", buf);
+			fflush(stdout);
+
+			if(strstr(buf, DEFAULT_EXIT) != 0){
 	    		quit = 1;
 	    	} 
-			printf ("%s", buf);
 	    } /* End of switch statement */
-
-		//Check for normal termination request.
-		if(quit){
-			/*display("ProcessOutput: Normal Termination");*/
-			break;
-		}
 
 	} /* End of infinite for loop */
 
@@ -195,7 +235,7 @@ int ProcessTranslate(int inputPipe[], int outputPipe[])
     		/* Disable reading from the output pipe, only writing required. */
 			close(outputPipe[0]);	
     		
-    		for(;;)
+    		while(!quit)
     		{
     			nread = read(inputPipe[0], msg, BUFFERSIZE);
     			switch (nread)
@@ -203,28 +243,27 @@ int ProcessTranslate(int inputPipe[], int outputPipe[])
 			    case -1:
 			    case 0:
 			    	break;
+
 			    default:
 			    
+			    	/*Display the Raw Message initially*/
 			    	appendMessage(raw, msg, rawMessage);
 			    	write (outputPipe[1], rawMessage, BUFFERSIZE);
 
+			    	/*Translate the Formatted Message and display it.*/
 			    	TranslateRawInput(msg, formatted);
 			    	appendMessage(format, formatted, formattedMessage);
 
 			    	write (outputPipe[1], formattedMessage, BUFFERSIZE);	
-			    	/*Display the Raw Message initially*/
+			    	
 
-					/* Last part to section */
+					/* Terminate when the DEFAULT_EXIT character is detected. */
 					if (strstr(msg, DEFAULT_EXIT) != 0) {
 						wait(NULL);
 						quit = 1;
 				    }
 			    } /* End of switch statement */
 
-				//Check for normal termination request.
-				if(quit){
-					break;
-				}
     		}/* End of for-loop */
     	}
     	break;
