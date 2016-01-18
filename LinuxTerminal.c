@@ -48,7 +48,7 @@ int main(void)
 	int translatePipe[2];
 	int outputPipe[2];
 
-	system ("/bin/stty raw");
+	system ("/bin/stty raw igncr -echo");
 
 	/* Open translate pipe communication. */
 	if(pipe(translatePipe) < 0 || pipe(outputPipe) < 0){
@@ -289,7 +289,9 @@ void TranslateRawInput(const char* src, char* dest)
 				dest[j--] = '\0';
 			}
 			j = 0;
-		} else {
+		} else if(src[i] == 'E') {
+			/* ignore E character. */
+		}else {
 			dest[j++] = src[i];
 		}
 	}
