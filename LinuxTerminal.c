@@ -289,8 +289,8 @@ void TranslateRawInput(const char* src, char* dest)
 				dest[j--] = '\0';
 			}
 			j = 0;
-		} else if(src[i] == 'E') {
-			/* ignore E character. */
+		} else if(src[i] == 'E' || src[i] == 'T') {
+			/* ignore E and T characters. */
 		}else {
 			dest[j++] = src[i];
 		}
