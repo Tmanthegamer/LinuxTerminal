@@ -102,7 +102,6 @@ int ProcessInput(int translatePipe[])
 	
 	while(!quit){
 		c = getchar();
-		printf("c:%c\n", c);
 		switch(c)
 		{
 		/* Null character and newline restarts the while loop. */
@@ -117,6 +116,7 @@ int ProcessInput(int translatePipe[])
 		case 'E':
 			message[i++] = c;
 			message[i++] = '\n';
+			message[i++] = '\r';
 			message[i++] = '\0';
 			write (translatePipe[1], message, BUFFERSIZE);
 			
@@ -126,8 +126,10 @@ int ProcessInput(int translatePipe[])
 		case 'T':
 			message[i++] = c;
 			message[i++] = '\n';
+			message[i++] = '\r';
 			message[i++] = '\0';
-			
+			write (translatePipe[1], message, BUFFERSIZE);
+
 			/* Sacrifices the children first before Process Input itself. */
 			wait(NULL);
 			quit = 1;
@@ -177,7 +179,7 @@ int ProcessOutput(int outputPipe[])
 
 	close(outputPipe[1]); /* Close the pipe for writing, don't need it. */
 
-	while(!quit)
+	while(quit < 2)
 	{
 	    nread = read(outputPipe[0], buf, BUFFERSIZE);
 	    switch (nread)
@@ -190,8 +192,8 @@ int ProcessOutput(int outputPipe[])
 	    	printf ("%s", buf);
 			fflush(stdout);
 
-			if(strstr(buf, DEFAULT_EXIT) != 0){
-	    		quit = 1;
+			if(strstr(buf, DEFAULT_EXIT) != 0 || quit){
+	    		quit++;
 	    	} 
 	    } /* End of switch statement */
 
