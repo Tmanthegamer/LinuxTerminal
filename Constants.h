@@ -28,7 +28,7 @@ variable declaration.
 /* The available buffersize of all char arrays. Note: please don't sleep 
 on the keyboard. This error is handled but your output will not be 
 properly formatted and will look funny. */
-#define BUFFERSIZE 4096
+#define BUFFERSIZE 4098
 
 /* Signal sent when ctrl-k is sent. Only the input will search for this 
 character. If the character is found, this program will abnormally close. 

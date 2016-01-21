@@ -117,6 +117,9 @@ int ProcessInput(int translatePipe[])
 	close(translatePipe[0]); /* Close the pipe for reading, don't need it. */
 	
 	while(!quit){
+		if(i >= BUFFERSIZE)
+			i = 0;
+
 		c = getchar();
 		switch(c)
 		{
@@ -133,17 +136,21 @@ int ProcessInput(int translatePipe[])
 			message[i++] = c;
 			message[i++] = '\n';
 			message[i++] = '\r';
-			message[i++] = '\0';
+			message[i] = '\0';
 			write (translatePipe[1], message, BUFFERSIZE);
 			
-			i = 0;
-			message[i] = '\0';
+			/* Empty the message buffer */
+			while(i > 0){
+				message[i--] = '\0';
+			}
+			message[0] = '\0';
+			
 			break;
 		case 'T':
 			message[i++] = c;
 			message[i++] = '\n';
 			message[i++] = '\r';
-			message[i++] = '\0';
+			message[i] = '\0';
 			write (translatePipe[1], message, BUFFERSIZE);
 
 			/* Sacrifices the children first before Process Input itself. */
@@ -278,7 +285,11 @@ void TranslateRawInput(const char* src, char* dest)
 		if(src[i] == 'a'){
 			dest[j++] = 'z';
 		} else if(src[i] == 'X'){
-			dest[j++] = '\b';
+			if(j > 0){
+				j--;
+			}else {
+				j = 0;
+			}
 		} else if(src[i] == 'K'){
 			while(j > -1){
 				dest[j--] = '\0';
@@ -290,7 +301,10 @@ void TranslateRawInput(const char* src, char* dest)
 			dest[j++] = src[i];
 		}
 	}
-	dest[i] = '\0';
+
+	dest[j] = '\0';
+	dest[j-1] = '\r';
+	dest[j-2] = '\n';
 
 }
 
@@ -315,7 +329,7 @@ void appendMessage(const char* first, const char* second, char* dest)
 	for(i = 0; first[i] != '\0'; i++){
 		
 		/* Break if the buffersize has been reached */
-		if(i >= BUFFERSIZE-1)
+		if(i >= BUFFERSIZE-2)
 			break;
 		
 		dest[i] = first[i];
@@ -324,13 +338,16 @@ void appendMessage(const char* first, const char* second, char* dest)
 	for(j = 0; second[j] != '\0'; j++){
 		
 		/* Break if the buffersize has been reached */
-		if(i >= BUFFERSIZE-1)
+		if(i >= BUFFERSIZE-2)
 			break;
 
 		/* append the second to the destination. */
 		dest[i++] = second[j];
 	}
-	/* The final character will always be null terminated. */
+	
+	/* The final character will always be null terminated and have a new line. */
 	dest[i] = '\0';
+	dest[i-1] = '\r';
+	dest[i-2] = '\n';
 }
 

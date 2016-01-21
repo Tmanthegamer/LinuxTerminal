@@ -22,6 +22,9 @@ REVISIONS:		January 16th, 2016 (Tyler Trepanier-Bracken)
 					-Added in more information on code headers.
 					-Removed display function, became deprecated.
 
+				January 20, 2016 (Tyler Trepanier-Bracken)
+					-Handled bufferflow exception.
+
 DESIGNGER:		Tyler Trepanier-Bracken
 
 PROGRAMMER:		Tyler Trepanier-Bracken
@@ -121,6 +124,9 @@ REVISIONS:		January 13, 2016 (Tyler Trepanier-Bracken)
 				January 12, 2016 (Tyler Trepanier-Bracken)
 					-Properly implemented the 'ctrl-k'
 						(forcing abnormal terminatoin of this program).
+
+				January 20, 2016 (Tyler Trepanier-Bracken)
+					-Handled bufferflow exception.
 
 DESIGNER:		Tyler Trepanier-Bracken
 
@@ -328,6 +334,9 @@ DATE:			January 13, 2016
 REVISIONS:		January 16, 2016 (Tyler Trepanier-Bracken)
 					-Made the "first" and "second" parameter constant to
 						reduce copying required.
+
+				January 20, 2016 (Tyler Trepanier-Bracken)
+					-Handled bufferflow exception.
 
 DESIGNER:		Tyler Trepanier-Bracken
 
