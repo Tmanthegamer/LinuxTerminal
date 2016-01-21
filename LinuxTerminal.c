@@ -16,14 +16,31 @@ FUNCTIONS:		int main(void)
 
 DATE:			January 9th, 2016
 
-REVISIONS:
+REVISIONS:		January 20th, 2016 (Tyler Trepanier-Bracken)
+					-Removed deprecated display function, no longer used.
+					-Removed deprecated FindCommand function, no longer used.
+					-Removed debugging messages (bad practice)
+
+				January 13, 2016 (Tyler Trepanier-Bracken)
+					-Added appendMessage function for cleaner display
+					-Implemented system ("/bin/stty raw igncr -echo") and
+						and final bug fixing.
+					-Replaced line-by-line input with char-by-char input.
+					-Pressing 'T' will allow the output to ALSO show the
+					formatted reponse before terminating.
+
+				January 12, 2016 (Tyler Trepanier-Bracken)
+					-Catches and ignores all signal functionality however
+						ctrl-\ still forces shutdown, unable to catch...
+					-
 
 DESIGNGER:		Tyler Trepanier-Bracken
 
 PROGRAMMER:		Tyler Trepanier-Bracken
 
 NOTES:
-THIS PROGRAM WILL REMOVE YOUR STANDARD LINUX TERMINAL FUNCTIONAL AND REPLACE IT WITH ITS OWN VERSION.
+THIS PROGRAM WILL REMOVE YOUR STANDARD LINUX TERMINAL FUNCTIONAL AND REPLACE IT 
+WITH ITS OWN VERSION.
 
 This program is designed to mimic the basic functions of writing to the 
 terminal using the standard terminal keyboard in order to showcase the 
@@ -148,26 +165,6 @@ int ProcessInput(int translatePipe[])
 	}
 	system ("stty -raw -igncr echo");
 
-	#if 0
-	while ((fgets(message, BUFFERSIZE, stdin)) != NULL || !quit) {
-		if(FindCommand(message)>= 0){
-			kill(0, SIGKILL);
-			break;
-		}
-		
-		write (translatePipe[1], message, BUFFERSIZE);
-		if(strstr(message, DEFAULT_EXIT)) {
-			/*display("ProcessInput: Normal Termination.");*/
-
-			wait(NULL);
-			break;
-		}
-		
-	}
-	#endif
-
-	/*display("Process Input: Ending ProcessInput");*/
-
 	return 0;
 }
 
@@ -229,7 +226,6 @@ int ProcessTranslate(int inputPipe[], int outputPipe[])
     	fatal ("ProcessTranslate: Bad process translate fork call");
     	break;
     case 0:        /* It's the child */
-    	/*display("ProcessTranslate: Child, beginning ProcessOutput");*/
     	ProcessOutput (outputPipe);
     	break;
     default:       /* Perform the translation function. */
@@ -307,28 +303,10 @@ void fatal(const char* errorMsg)
 	exit(1);
 }
 
-/*==== Prints the message to the standard output. ====*/
-void display(const char* msg)
-{
-	printf("%s\n", msg);
-}
-
 /* Simple signal handler */
 void sig_handler(int sig)
 {
 	/* Does absolutely nothing but ignore signal commands */
-}
-
-/* Search for ctrl-k */
-int FindCommand(const char* haystack)
-{
-	int i;
-	for(i = 0; i < BUFFERSIZE; i++){
-		if(haystack[i] == IMMEDIATE_EXIT){
-			return i;
-		}
-	}
-	return -1;
 }
 
 /* Combine two strings together */

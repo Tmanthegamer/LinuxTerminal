@@ -12,10 +12,15 @@ FUNCTIONS:		int main(void)
 				int ProcessTranslate(int p[])
 				void fatal(char* msg)
 				char* TranslateRawInput(char* rawInput)
+				void appendMessage( const char* first, 
+									const char* second, 
+									char* dest);
 
 DATE:			January 9th, 2016
 
-REVISIONS:
+REVISIONS:		January 16th, 2016 (Tyler Trepanier-Bracken)
+					-Added in more information on code headers.
+					-Removed display function, became deprecated.
 
 DESIGNGER:		Tyler Trepanier-Bracken
 
@@ -62,7 +67,20 @@ FUNCTION: 		Main
 
 DATE:			January 9, 2016
 
-REVISIONS:		(Date and Description)
+REVISIONS:		January
+
+				January 10, 2016 (Tyler Trepanier-Bracken)
+					-Implemented the translate process.
+					-Implemented cross process communication.
+
+				January 12, 2016 (Tyler Trepanier-Bracken)
+					-Implemented signal handling and catching.
+
+				January 16, 2016 (Tyler Trepanier-Bracken)
+					-Removed terminal functionality, only allowed to use
+						the implemented keystrokes.
+					-Implemented system ("/bin/stty raw igncr -echo") and
+						and final bug fixing.
 
 DESIGNER:		Tyler Trepanier-Bracken
 
@@ -72,7 +90,7 @@ INTERFACE:		int main (void)
 
 PARAMETERS:		void
 
-RETURNS:		int:	
+RETURNS:		int : Always returns zero on program termination.
 
 NOTES:
 Main entry point into the program. This function will: 
@@ -93,7 +111,16 @@ FUNCTION: 		ProcessInput
 
 DATE:			January 9, 2016
 
-REVISIONS:		(Date and Description)
+REVISIONS:		January 13, 2016 (Tyler Trepanier-Bracken)
+					-Implemented system ("/bin/stty -raw -igncr echo") and
+						and final bug fixing.
+					-Replaced line-by-line input with char-by-char input.
+					-Pressing 'T' will allow the output to ALSO show the
+					formatted reponse before terminating.
+
+				January 12, 2016 (Tyler Trepanier-Bracken)
+					-Properly implemented the 'ctrl-k'
+						(forcing abnormal terminatoin of this program).
 
 DESIGNER:		Tyler Trepanier-Bracken
 
@@ -116,15 +143,20 @@ constantly read keyboard input. When the ENTER key is pressed, all of the RAW
 input will sent to the translate function where it will be processed. 
 
 Pressing 'T'(that's a captial 't') results in a normal termination of the 
-program which will output the raw input to the Translate process. The 
-Translate and Output processes will be closed off.
+program which will output the raw input and formatted output to the 
+Translate process. The Translate and Output processes will be closed off.
 
 Pressing 'ctrl-k' (that's a control button and a lowercase 'k') immediately 
 suspends the program, bypassing the regular translate process function and 
 force closing the Translate and Output process.
 
+Pressing 'X' will erase the previous character in the formatted output.
+
 Reading from the pipe will be closed off for this function because it is 
 unnecessary for this function's purpose.
+
+Note: please don't sleep on the keyboard. This exceoption is handled but your 
+output will not be properly formatted and will look funny.
 ===============================================================================
 */
 int ProcessInput(int p[]);
@@ -135,7 +167,8 @@ FUNCTION: 		ProcessOutput
 
 DATE:			January 9, 2016
 
-REVISIONS:		(Date and Description)
+REVISIONS:		January 16, 2016 (Tyler Trepanier-Bracken)
+					-Removed display use, printf is more usable and readable.
 
 DESIGNER:		Tyler Trepanier-Bracken
 
@@ -168,7 +201,9 @@ FUNCTION: 		ProcessTranslate
 
 DATE:			January 9, 2016
 
-REVISIONS:		(Date and Description)
+REVISIONS:		January 10, 2016 (Tyler Trepanier-Bracken)
+					-Successfully implemented communication betwen both the
+						ProcessOutput and ProcessInput with no issues/bugs.
 
 DESIGNER:		Tyler Trepanier-Bracken
 
@@ -188,10 +223,13 @@ RETURNS:		-Returns -1 on abnormal process termination of program
 					(Pressing "T").
 
 NOTES:
-Associated with the Translate Process, this function reads the input gathered from the Input process via the pipe parameter.
+Associated with the Translate Process, this function reads the input gathered 
+from the Input process via the pipe parameter.
 
 (1) First it will send to the output the raw input received by the Input.
-(2) Next it will check the string for any macros from the input. The macros will be removed from the line of input and will dynamically adjust the input until the end of the line.
+(2) Next it will check the string for any macros from the input. The macros 
+will be removed from the line of input and will dynamically adjust the input 
+until the end of the line.
 (3) The result will be sent to the Output via the pipe again.
 ===============================================================================
 */
@@ -203,13 +241,17 @@ FUNCTION: 		TranslateRawInput
 
 DATE:			January 9, 2016
 
-REVISIONS:		(Date and Description)
+REVISIONS:		January 13, 2016 (Tyler Trepanier-Bracken)
+					-Added in support for 'X' characters to erase previous
+						characters
+					-'E' and 'T' characters will no longer be printed to the 
+						formatted output.
 
 DESIGNER:		Tyler Trepanier-Bracken
 
 PROGRAMMER(S):	Tyler Trepanier-Bracken
 
-INTERFACE:		char* TranslateRawInput(char* src,
+INTERFACE:		char* TranslateRawInput(const char* src,
 										char* dest)
 
 PARAMETERS:		const char* src
@@ -220,7 +262,8 @@ PARAMETERS:		const char* src
 RETURNS:		void
 
 NOTES:
-Utility function used by the ProcessTranslate that will convert all a's into z's. 
+Utility function used by the ProcessTranslate that will convert all a's 
+into z's. 
 ===============================================================================
 */
 void TranslateRawInput(const char* src, char* dest);
@@ -230,8 +273,6 @@ void TranslateRawInput(const char* src, char* dest);
 FUNCTION: 		Fatal 
 
 DATE:			January 9, 2016
-
-REVISIONS:		(Date and Description)
 
 DESIGNER:		Tyler Trepanier-Bracken
 
@@ -248,43 +289,17 @@ RETURNS:		-Returns -1 on abnormal process termination of program
 					(Pressing "T").
 
 NOTES:
-Displays an error message to the standard output and proceeds to terminate the program and all the processes.
+Displays an error message to the standard output and proceeds to terminate the 
+program and all the processes.
 ===============================================================================
 */
 void fatal(const char* errorMsg);
 
 /*
 ===============================================================================
-FUNCTION: 		Display 
-
-DATE:			January 10, 2016
-
-REVISIONS:		(Date and Description)
-
-DESIGNER:		Tyler Trepanier-Bracken
-
-PROGRAMMER(S):	Tyler Trepanier-Bracken
-
-INTERFACE:		void display(char* errorMsg)
-
-PARAMETERS:		const char *msg: 
-					Message to be displayed to the standard output.
-
-RETURNS:		void
-
-NOTES:
-Displays an message to the standard output and appends with a newline.
-===============================================================================
-*/
-void display(const char* msg);
-
-/*
-===============================================================================
 FUNCTION: 		sig_handler 
 
 DATE:			January 12, 2016
-
-REVISIONS:		(Date and Description)
 
 DESIGNER:		Tyler Trepanier-Bracken
 
@@ -298,37 +313,11 @@ PARAMETERS:		int sig:
 RETURNS:		void
 
 NOTES:
-This handles all signal input.
+This catches and traps all available signal input. Note: This will not catch
+the 'ctrl-\', the signal seems to be uncatchable. 
 ===============================================================================
 */
 void sig_handler (int sig);
-
-/*
-===============================================================================
-FUNCTION: 		FindCharacter 
-
-DATE:			January 13, 2016
-
-REVISIONS:		(Date and Description)
-
-DESIGNER:		Tyler Trepanier-Bracken
-
-PROGRAMMER(S):	Tyler Trepanier-Bracken
-
-INTERFACE:		int FindCharacter(char* haystack)
-
-PARAMETERS:		char* haystack
-					The character array that is searched.
-
-RETURNS:		-returns -1 if the no command was not found.
-				-returns the index of the kill command.
-
-NOTES:
-Searches a char array for the kill command.
-===============================================================================
-*/
-int FindCommand(const char* haystack);
-
 
 /*
 ===============================================================================
@@ -336,7 +325,9 @@ FUNCTION: 		AppendMessage
 
 DATE:			January 13, 2016
 
-REVISIONS:		(Date and Description)
+REVISIONS:		January 16, 2016 (Tyler Trepanier-Bracken)
+					-Made the "first" and "second" parameter constant to
+						reduce copying required.
 
 DESIGNER:		Tyler Trepanier-Bracken
 
