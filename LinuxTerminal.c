@@ -110,7 +110,6 @@ int main(void)
 /*==== Assigned to the Input process to read keyboard input. ====*/
 int ProcessInput(int translatePipe[])
 {
-	/*char confirm[BUFFERSIZE]= "ProcessInput: Sent Confirmed";*/
 	char message[BUFFERSIZE]={'\0'};
 	char c;
 	int i = 0;
